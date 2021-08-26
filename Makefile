@@ -52,7 +52,7 @@ OBJS_S_BONUS=		${SRCS_C_BONUS:.s=.o}
 
 OBJS_C=				${SRCS_C:.c=.o}
 
-NAME=				minishell
+NAME=				microshell
 
 CC=					cc
 RM=					rm -f
