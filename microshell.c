@@ -91,7 +91,7 @@ int		call_comm(char **comm, int comm_amnt)
 	}
 	else
 	{
-		waitpid(0, &status, 0);
+		waitpid(pid, &status, 0);
 		if (WIFEXITED(status) != 0)
 			return (WEXITSTATUS(status));
 		return (-1);
