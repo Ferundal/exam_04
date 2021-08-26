@@ -1,6 +1,8 @@
 #include <unistd.h>
 #include <string.h>
 #include <stdlib.h>
+#include <signal.h>
+#include <sys/wait.h>
 
 char	**g_envp;
 
