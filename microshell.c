@@ -104,7 +104,6 @@ int		exec_all(char **comm, int comm_amnt)
 	int		pipe_fd_arr[2];
 	pid_t	pid;
 	int		status;
-	int	temp_fd;
 
 	last_pipe = find_last_pipe(comm, comm_amnt);
 	if (last_pipe != NULL)
@@ -126,13 +125,10 @@ int		exec_all(char **comm, int comm_amnt)
 		}
 		else
 		{
-			temp_fd = dup(0);
 			dup2(pipe_fd_arr[0], 0);
 			close(pipe_fd_arr[0]);
 			close(pipe_fd_arr[1]);
 			status = call_comm(last_pipe + 1, comm_amnt - (last_pipe -1 - comm));
-			dup2(temp_fd, 0);
-			close(temp_fd);
 			return (status);
 		}
 	}
