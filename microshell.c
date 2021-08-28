@@ -96,38 +96,40 @@ int		call_comm(char **comm, int comm_amnt)
 int		exec_all(char **comm, int comm_amnt)
 {
 	char	**next_pipe;
-	int		pipe_fd_arr[2];
 	pid_t	pid;
-	int		status;
+	int		pipe_fds[2];
 
-	while ((next_pipe = find_next_pipe(comm, comm_amnt)) != NULL)
+	next_pipe = find_next_pipe(comm, comm_amnt);
+	if (next_pipe != NULL)
 	{
-		pipe (pipe_fd_arr);
+		if (pipe(pipe_fds) != 0)
+		{
+			ft_put_str_err("error: fatal\n");
+			exit (-1);
+		}
 		pid = fork();
 		if (pid < 0)
 		{
 			ft_put_str_err("error: fatal\n");
-			exit(1);
+			exit (-1);
 		}
 		if (pid == 0)
 		{
-			dup2(pipe_fd_arr[1], 1);
-			close(pipe_fd_arr[0]);
-			close(pipe_fd_arr[1]);
-			status = exec_all(comm, next_pipe - comm);
-			exit (status);
+			dup2(pipe_fds[0], 0);
+			close(pipe_fds[0]);
+			close(pipe_fds[1]);
+			exec_all(next_pipe + 1, comm_amnt - (next_pipe - comm));
+			exit(0);
 		}
-		else
-		{
-			dup2(pipe_fd_arr[0], 0);
-			close(pipe_fd_arr[0]);
-			close(pipe_fd_arr[1]);
-			status = call_comm(next_pipe + 1, comm_amnt - (next_pipe -1 - comm));
-			return (status);
-		}
+		dup2(pipe_fds[1], 1);
+		close(pipe_fds[1]);
+		close(pipe_fds[0]);
+		exec_all(comm, next_pipe - comm);
+		close(1);
+		waitpid(pid, NULL, 0);
+		return (0);
 	}
-	else
-		return (call_comm(comm, comm_amnt));
+	return (call_comm(comm, comm_amnt));
 }
 
 int		main(int argc, char **argv, char **envp)
@@ -136,8 +138,6 @@ int		main(int argc, char **argv, char **envp)
 
 	if (argc-- < 1)
 		return (0);
-	signal(SIGINT, SIG_IGN);
-	signal(SIGQUIT, SIG_IGN);
 	g_envp = envp;
 	first_comm = ++argv;
 	while (argc-- > 0)
