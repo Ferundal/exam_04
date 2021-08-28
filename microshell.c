@@ -33,18 +33,15 @@ int		ft_cd(char **comm, int comm_amnt)
 	return (0);
 }
 
-char	**find_last_pipe(char **comm, int comm_amnt)
+char	**find_next_pipe(char **comm, int comm_amnt)
 {
-	char	**last_pipe;
-
-	last_pipe = NULL;
 	while (comm_amnt-- > 0)
 	{
 		if (strcmp(*comm, "|") == 0)
-			last_pipe = comm;
+			return (comm);
 		++comm;
 	}
-	return (last_pipe);
+	return (NULL);
 }
 
 void	cpy_array(char **dst, char **src, int elem_amnt)
@@ -81,8 +78,6 @@ int		call_comm(char **comm, int comm_amnt)
 			exit (-1);
 		}
 		cpy_array(param, comm, comm_amnt);
-		signal(SIGINT, SIG_DFL);
-		signal(SIGQUIT, SIG_DFL);
 		status = execve(*comm, param, g_envp);
 		ft_put_str_err("error: cannot execute ");
 		ft_put_str_err(*comm);
@@ -100,13 +95,12 @@ int		call_comm(char **comm, int comm_amnt)
 
 int		exec_all(char **comm, int comm_amnt)
 {
-	char	**last_pipe;
+	char	**next_pipe;
 	int		pipe_fd_arr[2];
 	pid_t	pid;
 	int		status;
 
-	last_pipe = find_last_pipe(comm, comm_amnt);
-	if (last_pipe != NULL)
+	while ((next_pipe = find_next_pipe(comm, comm_amnt)) != NULL)
 	{
 		pipe (pipe_fd_arr);
 		pid = fork();
@@ -120,7 +114,7 @@ int		exec_all(char **comm, int comm_amnt)
 			dup2(pipe_fd_arr[1], 1);
 			close(pipe_fd_arr[0]);
 			close(pipe_fd_arr[1]);
-			status = exec_all(comm, last_pipe - comm);
+			status = exec_all(comm, next_pipe - comm);
 			exit (status);
 		}
 		else
@@ -128,7 +122,7 @@ int		exec_all(char **comm, int comm_amnt)
 			dup2(pipe_fd_arr[0], 0);
 			close(pipe_fd_arr[0]);
 			close(pipe_fd_arr[1]);
-			status = call_comm(last_pipe + 1, comm_amnt - (last_pipe -1 - comm));
+			status = call_comm(next_pipe + 1, comm_amnt - (next_pipe -1 - comm));
 			return (status);
 		}
 	}
