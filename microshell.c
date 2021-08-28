@@ -99,6 +99,8 @@ int		exec_all(char **comm, int comm_amnt)
 	pid_t	pid;
 	int		pipe_fds[2];
 
+	if (comm_amnt == 0)
+		return (0);
 	next_pipe = find_next_pipe(comm, comm_amnt);
 	if (next_pipe != NULL)
 	{
@@ -118,7 +120,7 @@ int		exec_all(char **comm, int comm_amnt)
 			dup2(pipe_fds[0], 0);
 			close(pipe_fds[0]);
 			close(pipe_fds[1]);
-			exec_all(next_pipe + 1, comm_amnt - (next_pipe - comm));
+			exec_all(next_pipe + 1, comm_amnt - (next_pipe - comm + 1));
 			exit(0);
 		}
 		dup2(pipe_fds[1], 1);
